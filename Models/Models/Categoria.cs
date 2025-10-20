@@ -16,6 +16,6 @@ namespace GestaoProativaInventario.Models
 
         public bool Ativa { get; set; } = true;
 
-        public ICollection<Produto> Produtos { get; set; }
+        public ICollection<Produto>? Produtos { get; set; }
     }
 }
