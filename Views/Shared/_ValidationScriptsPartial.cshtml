@@ -1,2 +1,27 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<script type="text/javascript">
+
+    // Salva o método original de validação de 'number'
+    var originalNumberMethod = $.validator.methods.number;
+
+    // Sobrescreve o método 'number'
+    $.validator.methods.number = function (value, element) {
+        if (value) {
+            // Substitui a vírgula pelo ponto ANTES de validar
+            value = value.replace(",", ".");
+        }
+        // Chama o método original com o valor (potencialmente) corrigido
+        return originalNumberMethod.call(this, value, element);
+    };
+
+    // (Opcional, mas recomendado) Faz o mesmo para o validador de 'range'
+    var originalRangeMethod = $.validator.methods.range;
+    $.validator.methods.range = function (value, element, param) {
+        if (value) {
+            value = value.replace(",", ".");
+        }
+        return originalRangeMethod.call(this, value, element, param);
+    };
+</script>
