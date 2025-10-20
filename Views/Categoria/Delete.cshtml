@@ -1,0 +1,49 @@
+@model GestaoProativaInventario.Models.Categoria
+
+@{
+    ViewData["Title"] = "Excluir Categoria";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Excluir Categoria</h1>
+</div>
+
+<h3>Tem certeza de que deseja excluir esta categoria?</h3>
+<div>
+    <h4>Categoria</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Nome)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Nome)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Descricao)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Descricao)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Ativa)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.Ativa)
+            {
+                <span class="badge bg-success">Ativa</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Inativa</span>
+            }
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Excluir" class="btn btn-danger" /> |
+        <a asp-action="Index" class="btn btn-secondary">Voltar para a Lista</a>
+    </form>
+</div>
+

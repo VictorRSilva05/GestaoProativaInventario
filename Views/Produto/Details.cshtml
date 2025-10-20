@@ -1,0 +1,63 @@
+@model GestaoProativaInventario.Models.Produto
+
+@{
+    ViewData["Title"] = "Detalhes do Produto";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Detalhes do Produto</h1>
+</div>
+
+<div>
+    <h4>Produto</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Nome)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Nome)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CodigoBarras)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.CodigoBarras)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Categoria)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Categoria.Nome)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.PrecoMedio)
+        </dt>
+        <dd class="col-sm-10">
+            @Model.PrecoMedio.ToString("C")
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DataValidade)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DataValidade)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.EstoqueAtual)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.EstoqueAtual)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ProdutoIdOrigem)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ProdutoIdOrigem)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a> |
+    <a asp-action="Index" class="btn btn-secondary">Voltar para a Lista</a>
+</div>
+

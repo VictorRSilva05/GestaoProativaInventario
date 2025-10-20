@@ -1,0 +1,62 @@
+@model IEnumerable<GestaoProativaInventario.Models.Produto>
+
+@{
+    ViewData["Title"] = "Produtos";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Gestão de Produtos</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a asp-action="Create" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-circle"></i> Novo Produto
+        </a>
+    </div>
+</div>
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="SearchString" class="form-control" placeholder="Buscar por nome, código de barras ou categoria..." value="@ViewData["CurrentFilter"]" />
+        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i> Buscar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Limpar</a>
+    </div>
+</form>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().Id)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Nome)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Categoria.Nome)</th>
+            <th>@Html.DisplayNameFor(model => model.First().EstoqueAtual)</th>
+            <th>@Html.DisplayNameFor(model => model.First().PrecoMedio)</th>
+            <th>Data Última Venda</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Id)</td>
+                <td>@Html.DisplayFor(modelItem => item.Nome)</td>
+                <td>@Html.DisplayFor(modelItem => item.Categoria.Nome)</td>
+                <td>@Html.DisplayFor(modelItem => item.EstoqueAtual)</td>
+                <td>@item.PrecoMedio.ToString("C")</td>
+                <td>@(item.UltimaDataVenda.HasValue ? item.UltimaDataVenda.Value.ToShortDateString() : "N/A")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info me-1"><i class="bi bi-pencil"></i> Editar</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary me-1"><i class="bi bi-eye"></i> Detalhes</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Excluir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

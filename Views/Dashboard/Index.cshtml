@@ -1,0 +1,97 @@
+@model GestaoProativaInventario.Controllers.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.reload();">Atualizar Dashboard</button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Cards de KPIs -->
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total de Produtos</h5>
+                <p class="card-text display-4">@Model.Summary.TotalProdutos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total de Vendas</h5>
+                <p class="card-text display-4">@Model.Summary.TotalVendas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Alertas Ativos</h5>
+                <p class="card-text display-4">@Model.Summary.AlertasAtivos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Taxa de Ruptura</h5>
+                <p class="card-text display-4">@Model.Summary.TaxaRuptura.ToString("N2")%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Top Alertas Ativos
+            </div>
+            <div class="card-body">
+                @if (Model.TopAlertas != null && Model.TopAlertas.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var alerta in Model.TopAlertas)
+                        {
+                            <li class="list-group-item">
+                                <strong>@alerta.Tipo:</strong> @alerta.Mensagem (@alerta.Produto.Nome)
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>Nenhum alerta ativo.</p>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Giro de Estoque
+            </div>
+            <div class="card-body">
+                <p class="card-text display-4">@Model.Summary.GiroEstoque.ToString("N2") dias</p>
+                <p class="card-text">Tempo médio de renovação do estoque.</p>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                Custo de Manutenção de Estoque
+            </div>
+            <div class="card-body">
+                <p class="card-text display-4">@Model.Summary.CustoManutencaoEstoque.ToString("C")</p>
+                <p class="card-text">Valor estimado de capital parado em estoque excedente.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Gráficos de tendência e tabelas de resumo seriam implementados aqui usando bibliotecas de gráficos (ex: Chart.js) e mais lógica no controller/service. *@
