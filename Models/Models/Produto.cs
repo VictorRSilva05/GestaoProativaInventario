@@ -17,7 +17,7 @@ namespace GestaoProativaInventario.Models
 
         [ForeignKey("Categoria")]
         public int CategoriaId { get; set; }
-        public Categoria Categoria { get; set; }
+        public Categoria? Categoria { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal PrecoMedio { get; set; }

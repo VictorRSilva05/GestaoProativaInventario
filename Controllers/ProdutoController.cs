@@ -62,6 +62,7 @@ namespace GestaoProativaInventario.Controllers
         {
             if (ModelState.IsValid)
             {
+                produto.DataValidade = produto.DataValidade?.ToUniversalTime();
                 await _produtoService.AddProdutoAsync(produto);
                 return RedirectToAction(nameof(Index));
             }
@@ -100,6 +101,7 @@ namespace GestaoProativaInventario.Controllers
             {
                 try
                 {
+                    produto.DataValidade = produto.DataValidade?.ToUniversalTime();
                     await _produtoService.UpdateProdutoAsync(produto);
                 }
                 catch (DbUpdateConcurrencyException)

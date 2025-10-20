@@ -3,25 +3,24 @@
 
 <script type="text/javascript">
 
-    // Salva o método original de validação de 'number'
-    var originalNumberMethod = $.validator.methods.number;
-
-    // Sobrescreve o método 'number'
-    $.validator.methods.number = function (value, element) {
-        if (value) {
-            // Substitui a vírgula pelo ponto ANTES de validar
-            value = value.replace(",", ".");
-        }
-        // Chama o método original com o valor (potencialmente) corrigido
-        return originalNumberMethod.call(this, value, element);
+    // Sobrescreve o validador 'number' do jQuery para aceitar o formato pt-BR (com vírgula)
+    $.validator.methods.number = function(value, element) {
+        return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:.\d{3})*)(?:,\d+)?$/.test(value);
     };
 
-    // (Opcional, mas recomendado) Faz o mesmo para o validador de 'range'
-    var originalRangeMethod = $.validator.methods.range;
-    $.validator.methods.range = function (value, element, param) {
-        if (value) {
-            value = value.replace(",", ".");
+    // Sobrescreve o validador 'range' para tratar a vírgula
+    $.validator.methods.range = function(value, element, param) {
+        if (this.optional(element)) {
+            return true;
         }
-        return originalRangeMethod.call(this, value, element, param);
+        // Converte o valor pt-BR (com vírgula) para um número flutuante
+        var valueWithDot = value.replace(".", "").replace(",", ".");
+        var val = parseFloat(valueWithDot);
+
+        // Converte os parâmetros (min e max)
+        var min = parseFloat(param[0]);
+        var max = parseFloat(param[1]);
+
+        return val >= min && val <= max;
     };
 </script>
