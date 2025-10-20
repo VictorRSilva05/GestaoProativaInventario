@@ -9,7 +9,7 @@ builder.Services.AddControllersWithViews();
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration["CONNECTION_STRING"]));
 
 builder.Services.AddScoped<GestaoProativaInventario.Services.CsvImportService>();
 builder.Services.AddScoped<GestaoProativaInventario.Services.CategoriaService>();
