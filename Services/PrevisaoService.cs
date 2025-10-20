@@ -25,7 +25,7 @@ namespace GestaoProativaInventario.Services
         public async Task GerarPrevisoesDemanda(int produtoId, int periodoObservacao, int intervaloPrevisao)
         {
             var vendas = await _context.Vendas
-                                   .Where(v => v.ProdutoId == produtoId && v.DataVenda >= DateTime.Today.AddDays(-periodoObservacao))
+                                   .Where(v => v.ProdutoId == produtoId && v.DataVenda >= DateTime.UtcNow.AddDays(-periodoObservacao))
                                    .OrderBy(v => v.DataVenda)
                                    .ToListAsync();
 
@@ -48,7 +48,7 @@ namespace GestaoProativaInventario.Services
                 IntervaloPrevisao = intervaloPrevisao,
                 MediaMovel = (decimal)mediaMovel,
                 DemandaPrevista = demandaPrevista,
-                DataCalculo = DateTime.Now
+                DataCalculo = DateTime.UtcNow
             };
 
             _context.Previsoes.Add(previsao);

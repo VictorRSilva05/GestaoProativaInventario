@@ -61,7 +61,9 @@ namespace GestaoProativaInventario.Services
                             CodigoBarras = record.CodigoBarras,
                             CategoriaId = categoria.Id,
                             PrecoMedio = record.PrecoUnitario,
-                            DataValidade = record.DataValidade,
+                            DataValidade = record.DataValidade.HasValue
+                            ? DateTime.SpecifyKind(record.DataValidade.Value, DateTimeKind.Utc)
+                            : null,
                             EstoqueAtual = record.EstoqueAtual ?? 0 // Se não vier no CSV, assume 0
                         };
                         _context.Produtos.Add(produto);
@@ -73,18 +75,27 @@ namespace GestaoProativaInventario.Services
                         produto.CodigoBarras = record.CodigoBarras;
                         produto.CategoriaId = categoria.Id;
                         produto.PrecoMedio = record.PrecoUnitario; // Pode ser uma média ou o último preço
-                        produto.DataValidade = record.DataValidade;
+                        produto.DataValidade = record.DataValidade.HasValue
+                        ? DateTime.SpecifyKind(record.DataValidade.Value, DateTimeKind.Utc)
+                        : null;
                         produto.EstoqueAtual = record.EstoqueAtual ?? produto.EstoqueAtual; // Atualiza se vier no CSV
                         _context.Produtos.Update(produto);
                     }
                     await _context.SaveChangesAsync();
 
-                    // Adicionar Venda
                     var venda = new Venda
                     {
                         ProdutoId = produto.Id,
-                        DataVenda = record.DataVenda,
-                        DataValidade = record.DataValidade,
+
+                        DataVenda = DateTime.SpecifyKind(record.DataVenda, DateTimeKind.Utc),
+
+                        // --- INÍCIO DA MUDANÇA (Linha 87) ---
+                        // Verifica se tem valor. Se sim, converte. Se não, salva como null.
+                        DataValidade = record.DataValidade.HasValue
+                         ? DateTime.SpecifyKind(record.DataValidade.Value, DateTimeKind.Utc)
+                         : null,
+                        // --- FIM DA MUDANÇA ---
+
                         Quantidade = record.Quantidade,
                         PrecoUnitario = record.PrecoUnitario,
                         Fornecedor = record.Fornecedor,
