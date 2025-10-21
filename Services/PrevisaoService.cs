@@ -1,10 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using GestaoProativaInventario.Data;
 using GestaoProativaInventario.Models;
+using GestaoProativaInventario.Models.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.ML;
+using Microsoft.ML.Transforms.TimeSeries;
 
 namespace GestaoProativaInventario.Services
 {
@@ -60,30 +59,70 @@ namespace GestaoProativaInventario.Services
 
         public async Task GerarPrevisoesDemanda(int produtoId, int periodoObservacao, int intervaloPrevisao)
         {
+            // --- 1. CARREGAR OS DADOS DE TREINAMENTO ---
+            var dataInicioObservacao = DateTime.UtcNow.Date.AddDays(-periodoObservacao);
+
             var vendas = await _context.Vendas
-                                   .Where(v => v.ProdutoId == produtoId && v.DataVenda >= DateTime.UtcNow.AddDays(-periodoObservacao))
-                                   .OrderBy(v => v.DataVenda)
-                                   .ToListAsync();
+                .Where(v => v.ProdutoId == produtoId && v.DataVenda >= dataInicioObservacao)
+                .OrderBy(v => v.DataVenda)
+                .ToListAsync();
 
             if (!vendas.Any())
             {
-                // Não há vendas suficientes para gerar previsão
-                return;
+                return; // Sem dados, sem previsão
             }
 
-            // Cálculo da Média Móvel Simples (MMS)
-            double mediaMovel = vendas.Average(v => v.Quantidade);
+            var trainingData = vendas.Select(v => new ModelInput
+            {
+                DataVenda = v.DataVenda,
+                Quantidade = v.Quantidade
+            }).ToList();
 
-            // Previsão para o intervalo futuro
-            int demandaPrevista = (int)Math.Round(mediaMovel * intervaloPrevisao);
+            // --- 2. DEFINIR PARÂMETROS E VARIÁVEIS ---
+            const int windowSize = 7; // O tamanho da janela que queremos para o ML.NET
+            int demandaPrevista;
+            double mediaVendasObservadas = vendas.Average(v => v.Quantidade);
 
+            // --- 3. VERIFICAR SE TEMOS DADOS SUFICIENTES PARA O ML.NET ---
+
+            if (trainingData.Count <= (2 * windowSize))
+            {
+                // --- FALLBACK: DADOS INSUFICIENTES PARA ML.NET ---
+                // Usamos a Média Móvel Simples (o cálculo antigo)
+                demandaPrevista = (int)Math.Round(mediaVendasObservadas * intervaloPrevisao);
+            }
+            else
+            {
+                // --- SUCESSO: TEMOS DADOS PARA O ML.NET ---
+                var mlContext = new MLContext();
+                var dataView = mlContext.Data.LoadFromEnumerable(trainingData);
+
+                var pipeline = mlContext.Forecasting.ForecastBySsa(
+                    outputColumnName: nameof(ModelOutput.ForecastedQuantities),
+                    inputColumnName: nameof(ModelInput.Quantidade),
+                    windowSize: windowSize, // Usando a variável
+                    seriesLength: trainingData.Count,
+                    trainSize: trainingData.Count,
+                    horizon: intervaloPrevisao
+                );
+
+                var model = pipeline.Fit(dataView);
+
+                var predictionEngine = model.CreateTimeSeriesEngine<ModelInput, ModelOutput>(mlContext);
+                var forecast = predictionEngine.Predict();
+
+                // Somar a previsão do ML.NET
+                demandaPrevista = (int)Math.Round(forecast.ForecastedQuantities.Sum());
+            }
+
+            // --- 4. SALVAR A PREVISÃO (vinda do ML.NET ou do Fallback) ---
             var previsao = new Previsao
             {
                 ProdutoId = produtoId,
                 PeriodoObservacao = periodoObservacao,
                 IntervaloPrevisao = intervaloPrevisao,
-                MediaMovel = (decimal)mediaMovel,
-                DemandaPrevista = demandaPrevista,
+                MediaMovel = (decimal)mediaVendasObservadas, // Média real (para referência)
+                DemandaPrevista = demandaPrevista,           // O resultado (do ML ou MMS)
                 DataCalculo = DateTime.UtcNow
             };
 
