@@ -22,6 +22,42 @@ namespace GestaoProativaInventario.Services
             return await _context.Previsoes.Include(p => p.Produto).ThenInclude(p => p.Categoria).ToListAsync();
         }
 
+        public async Task<List<object[]>> GetDemandForecastChartData(int productId, int daysToObserve = 90)
+        {
+            var chartData = new List<object[]>();
+            chartData.Add(new object[] { "Data", "Vendas Reais", "Previsão de Demanda" });
+
+            // Vendas Reais
+            var salesData = await _context.Vendas
+                                        .Where(v => v.ProdutoId == productId && v.DataVenda >= DateTime.Today.AddDays(-daysToObserve))
+                                        .GroupBy(v => v.DataVenda.Date)
+                                        .Select(g => new { Date = g.Key, TotalSales = g.Sum(v => v.Quantidade) })
+                                        .OrderBy(x => x.Date)
+                                        .ToListAsync();
+
+            // Previsões
+            var forecasts = await _context.Previsoes
+                                        .Where(p => p.ProdutoId == productId && p.DataCalculo >= DateTime.Today.AddDays(-daysToObserve))
+                                        .OrderBy(p => p.DataCalculo)
+                                        .ToListAsync();
+
+            var allDates = salesData.Select(s => s.Date)
+                                    .Union(forecasts.Select(f => f.DataCalculo.Date))
+                                    .Distinct()
+                                    .OrderBy(d => d)
+                                    .ToList();
+
+            foreach (var date in allDates)
+            {
+                var sales = salesData.FirstOrDefault(s => s.Date == date)?.TotalSales ?? 0;
+                var forecast = forecasts.FirstOrDefault(f => f.DataCalculo.Date == date)?.DemandaPrevista ?? 0;
+                chartData.Add(new object[] { date.ToString("yyyy-MM-dd"), sales, forecast });
+            }
+
+            return chartData;
+        }
+
+
         public async Task GerarPrevisoesDemanda(int produtoId, int periodoObservacao, int intervaloPrevisao)
         {
             var vendas = await _context.Vendas

@@ -64,15 +64,67 @@ namespace GestaoProativaInventario.Services
                                 .Take(count)
                                 .ToListAsync();
         }
-    }
 
-    public class DashboardSummaryViewModel
-    {
-        public int TotalProdutos { get; set; }
-        public int TotalVendas { get; set; }
-        public int AlertasAtivos { get; set; }
-        public double TaxaRuptura { get; set; }
-        public double GiroEstoque { get; set; }
-        public decimal CustoManutencaoEstoque { get; set; }
+        public async Task<List<object[]>> GetAlertsDistributionChartData()
+        {
+            var chartData = new List<object[]>();
+            chartData.Add(new object[] { "Tipo de Alerta", "Quantidade" });
+
+            var alertsByType = await _context.Alertas
+                                            .Where(a => !a.Resolvido)
+                                            .GroupBy(a => a.Tipo)
+                                            .Select(g => new { Type = g.Key, Count = g.Count() })
+                                            .ToListAsync();
+
+            foreach (var item in alertsByType)
+            {
+                chartData.Add(new object[] { item.Type, item.Count });
+            }
+
+            return chartData;
+        }
+
+        public async Task<List<object[]>> GetStockTurnoverByCategoryChartData()
+        {
+            var chartData = new List<object[]>();
+            chartData.Add(new object[] { "Categoria", "Giro de Estoque (dias)" });
+
+            // Simplificação: Cálculo de giro de estoque por categoria baseado em vendas médias
+            // Um cálculo mais robusto exigiria dados de estoque ao longo do tempo.
+            var turnoverData = await _context.Categorias
+                                            .Select(c => new
+                                            {
+                                                CategoryName = c.Nome,
+                                                AverageDailySales = _context.Vendas
+                                                                            .Where(v => v.Produto.CategoriaId == c.Id)
+                                                                            .GroupBy(v => v.DataVenda.Date)
+                                                                            .Select(g => g.Sum(v => v.Quantidade))
+                                                                            .Average()
+                                            })
+                                            .ToListAsync();
+
+            foreach (var item in turnoverData)
+            {
+                // Assumindo um estoque médio e calculando um giro fictício para demonstração
+                // O cálculo real de giro de estoque é mais complexo e depende de dados de estoque e custo
+                var giro = item.AverageDailySales > 0 ? (decimal)365 / (decimal)item.AverageDailySales : 0;
+                chartData.Add(new object[] { item.CategoryName, (double)Math.Round(giro, 2) });
+            }
+
+            return chartData;
+        }
     }
 }
+
+
+
+public class DashboardSummaryViewModel
+{
+    public int TotalProdutos { get; set; }
+    public int TotalVendas { get; set; }
+    public int AlertasAtivos { get; set; }
+    public double TaxaRuptura { get; set; }
+    public double GiroEstoque { get; set; }
+    public decimal CustoManutencaoEstoque { get; set; }
+}
+

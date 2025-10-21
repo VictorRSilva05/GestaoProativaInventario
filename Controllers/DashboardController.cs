@@ -31,6 +31,20 @@ namespace GestaoProativaInventario.Controllers
             return View(viewModel);
         }
 
+        [HttpGet]
+        public async Task<JsonResult> GetAlertsDistributionChartData()
+        {
+            var chartData = await _dashboardService.GetAlertsDistributionChartData();
+            return Json(chartData);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetStockTurnoverByCategoryChartData()
+        {
+            var chartData = await _dashboardService.GetStockTurnoverByCategoryChartData();
+            return Json(chartData);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

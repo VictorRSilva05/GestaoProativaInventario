@@ -25,6 +25,13 @@ namespace GestaoProativaInventario.Controllers
             return View(previsoes);
         }
 
+        [HttpGet]
+        public async Task<JsonResult> GetDemandForecastChartData(int productId)
+        {
+            var chartData = await _previsaoService.GetDemandForecastChartData(productId);
+            return Json(chartData);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GerarPrevisao(int produtoId, int periodoObservacao, int intervaloPrevisao)

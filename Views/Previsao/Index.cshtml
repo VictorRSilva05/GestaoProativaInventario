@@ -8,30 +8,34 @@
     <h1 class="h2">Previsão de Demanda</h1>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card">
             <div class="card-header">
-                Gerar Nova Previsão
+                Gerar Nova Previsão e Visualizar Gráfico
             </div>
             <div class="card-body">
-                <form asp-action="GerarPrevisao" method="post">
-                    <div class="mb-3">
+                <form asp-action="GerarPrevisao" method="post" class="row g-3 align-items-end mb-4">
+                    <div class="col-md-4">
                         <label for="produtoId" class="form-label">Produto:</label>
-                        <select name="produtoId" id="produtoId" class="form-control" asp-items="ViewBag.ProdutoId" required>
-                            <option value="">Selecione um produto</option>
+                        <select name="produtoId" id="produtoId" class="form-select" asp-items="ViewBag.ProdutoId" required>
+                            <option value="">Selecione um Produto</option>
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <div class="col-md-3">
                         <label for="periodoObservacao" class="form-label">Período de Observação (dias):</label>
-                        <input type="number" name="periodoObservacao" id="periodoObservacao" class="form-control" value="30" min="1" required />
+                        <input type="number" name="periodoObservacao" id="periodoObservacao" class="form-control" value="90" min="1" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="col-md-3">
                         <label for="intervaloPrevisao" class="form-label">Intervalo de Previsão (dias):</label>
-                        <input type="number" name="intervaloPrevisao" id="intervaloPrevisao" class="form-control" value="30" min="1" required />
+                        <input type="number" name="intervaloPrevisao" id="intervaloPrevisao" class="form-control" value="30" min="1" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Gerar Previsão</button>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Gerar Previsão</button>
+                    </div>
                 </form>
+
+                <div id="demand_forecast_chart" style="height: 400px;"></div>
             </div>
         </div>
     </div>
@@ -51,30 +55,83 @@
     </div>
 }
 
-<h3 class="mt-4">Previsões Existentes</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Produto.Nome)</th>
-            <th>@Html.DisplayNameFor(model => model.PeriodoObservacao)</th>
-            <th>@Html.DisplayNameFor(model => model.IntervaloPrevisao)</th>
-            <th>@Html.DisplayNameFor(model => model.MediaMovel)</th>
-            <th>@Html.DisplayNameFor(model => model.DemandaPrevista)</th>
-            <th>@Html.DisplayNameFor(model => model.DataCalculo)</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.Produto.Nome)</td>
-                <td>@Html.DisplayFor(modelItem => item.PeriodoObservacao)</td>
-                <td>@Html.DisplayFor(modelItem => item.IntervaloPrevisao)</td>
-                <td>@item.MediaMovel.ToString("N2")</td>
-                <td>@Html.DisplayFor(modelItem => item.DemandaPrevista)</td>
-                <td>@Html.DisplayFor(modelItem => item.DataCalculo)</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="card mb-4">
+    <div class="card-header">
+        Últimas Previsões Geradas
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Período de Observação</th>
+                    <th>Intervalo de Previsão</th>
+                    <th>Média Móvel</th>
+                    <th>Demanda Prevista</th>
+                    <th>Data do Cálculo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Produto.Nome)</td>
+                        <td>@Html.DisplayFor(modelItem => item.PeriodoObservacao) dias</td>
+                        <td>@Html.DisplayFor(modelItem => item.IntervaloPrevisao) dias</td>
+                        <td>@item.MediaMovel.ToString("N2")</td>
+                        <td>@Html.DisplayFor(modelItem => item.DemandaPrevista)</td>
+                        <td>@Html.DisplayFor(modelItem => item.DataCalculo)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
+@section Scripts {
+    <script type="text/javascript">
+        google.charts.load(\'current\', {\'packages\':[\'corechart\']});
+        google.charts.setOnLoadCallback(function() {
+            // Garante que o gráfico seja desenhado na carga inicial se um produto já estiver selecionado
+            if ($("#produtoId").val()) {
+                drawChart();
+            }
+        });
+
+        function drawChart() {
+            var productId = $("#produtoId").val();
+            if (!productId) {
+                // Limpa o gráfico se nenhum produto for selecionado
+                document.getElementById(\'demand_forecast_chart\').innerHTML = \'Selecione um produto para visualizar o gráfico.\';
+                return;
+            }
+
+            $.getJSON(\'/Previsao/GetDemandForecastChartData?productId=\' + productId, function (jsonData) {
+                var data = google.visualization.arrayToDataTable(jsonData);
+
+                var options = {
+                    title: \'Vendas Reais vs. Previsão de Demanda\',
+                    curveType: \'function\',
+                    legend: { position: \'bottom\' },
+                    hAxis: { title: \'Data\', format: \'yyyy-MM-dd\' },
+                    vAxis: { title: \'Quantidade\' },
+                    series: {
+                        0: { color: \'#1f77b4\' }, // Vendas Reais
+                        1: { color: \'#ff7f0e\', lineDashStyle: [4, 4] } // Previsão de Demanda (tracejada)
+                    }
+                };
+
+                var chart = new google.visualization.LineChart(document.getElementById(\'demand_forecast_chart\'));
+                chart.draw(data, options);
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error("Erro ao carregar dados do gráfico: " + textStatus, errorThrown);
+                document.getElementById(\'demand_forecast_chart\').innerHTML = \'<div class=\"alert alert-warning\">Não foi possível carregar os dados do gráfico. Verifique se há previsões geradas para o produto selecionado.</div>\';
+            });
+        }
+
+        // Redesenha o gráfico quando o produto selecionado muda
+        $("#produtoId").change(function () {
+            drawChart();
+        });
+    </script>
+}
