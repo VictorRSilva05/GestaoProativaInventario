@@ -5,9 +5,11 @@
 }
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard</h1>
+    <h1 class="h2">Dashboard de KPIs</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.reload();">Atualizar Dashboard</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.reload();">
+            <i class="bi bi-arrow-clockwise"></i> Atualizar
+        </button>
     </div>
 </div>
 
@@ -24,14 +26,6 @@
     <div class="col-md-3 mb-4">
         <div class="card text-white bg-success mb-3">
             <div class="card-body">
-                <h5 class="card-title">Total de Vendas</h5>
-                <p class="card-text display-4">@Model.Summary.TotalVendas</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-body">
                 <h5 class="card-title">Alertas Ativos</h5>
                 <p class="card-text display-4">@Model.Summary.AlertasAtivos</p>
             </div>
@@ -41,54 +35,74 @@
         <div class="card text-white bg-info mb-3">
             <div class="card-body">
                 <h5 class="card-title">Taxa de Ruptura</h5>
-                <p class="card-text display-4">@Model.Summary.TaxaRuptura.ToString("N2")%</p>
+                <p class="card-text display-4">@Model.Summary.TaxaRuptura.ToString("P1")</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Giro de Estoque</h5>
+                <p class="card-text display-4">@Model.Summary.GiroEstoque.ToString("N0") dias</p>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                Top Alertas Ativos
-            </div>
+    <!-- Gráficos -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">Distribuição de Alertas por Tipo</div>
             <div class="card-body">
-                @if (Model.TopAlertas != null && Model.TopAlertas.Any())
-                {
-                    <ul class="list-group list-group-flush">
-                        @foreach (var alerta in Model.TopAlertas)
-                        {
-                            <li class="list-group-item">
-                                <strong>@alerta.Tipo:</strong> @alerta.Mensagem (@alerta.Produto.Nome)
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p>Nenhum alerta ativo.</p>
-                }
+                <div id="alerts_distribution_chart" style="height: 300px;"></div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                Giro de Estoque
-            </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">Giro de Estoque por Categoria</div>
             <div class="card-body">
-                <p class="card-text display-4">@Model.Summary.GiroEstoque.ToString("N2") dias</p>
-                <p class="card-text">Tempo médio de renovação do estoque.</p>
+                <div id="stock_turnover_chart" style="height: 300px;"></div>
             </div>
         </div>
-        <div class="card mb-4">
-            <div class="card-header">
-                Custo de Manutenção de Estoque
-            </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Top Alertas -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header">Top 5 Alertas Ativos</div>
             <div class="card-body">
-                <p class="card-text display-4">@Model.Summary.CustoManutencaoEstoque.ToString("C")</p>
-                <p class="card-text">Valor estimado de capital parado em estoque excedente.</p>
+                @if (Model.TopAlertas != null && Model.TopAlertas.Any())
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Tipo</th>
+                                <th>Mensagem</th>
+                                <th>Data Geração</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var alerta in Model.TopAlertas)
+                            {
+                                <tr>
+                                    <td>@alerta.Produto.Nome</td>
+                                    <td>@alerta.Tipo</td>
+                                    <td>@alerta.Mensagem</td>
+                                    <td>@alerta.DataGeracao.ToShortDateString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>Nenhum alerta ativo encontrado.</p>
+                }
             </div>
         </div>
     </div>

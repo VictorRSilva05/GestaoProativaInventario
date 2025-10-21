@@ -29,7 +29,7 @@ namespace GestaoProativaInventario.Services
 
             // Vendas Reais
             var salesData = await _context.Vendas
-                                        .Where(v => v.ProdutoId == productId && v.DataVenda >= DateTime.Today.AddDays(-daysToObserve))
+                                        .Where(v => v.ProdutoId == productId && v.DataVenda >= DateTime.UtcNow.Date.AddDays(-daysToObserve))
                                         .GroupBy(v => v.DataVenda.Date)
                                         .Select(g => new { Date = g.Key, TotalSales = g.Sum(v => v.Quantidade) })
                                         .OrderBy(x => x.Date)
@@ -37,7 +37,7 @@ namespace GestaoProativaInventario.Services
 
             // Previsões
             var forecasts = await _context.Previsoes
-                                        .Where(p => p.ProdutoId == productId && p.DataCalculo >= DateTime.Today.AddDays(-daysToObserve))
+                                        .Where(p => p.ProdutoId == productId && p.DataCalculo >= DateTime.UtcNow.Date.AddDays(-daysToObserve))
                                         .OrderBy(p => p.DataCalculo)
                                         .ToListAsync();
 

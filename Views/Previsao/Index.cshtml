@@ -90,7 +90,9 @@
 
 @section Scripts {
     <script type="text/javascript">
-        google.charts.load(\'current\', {\'packages\':[\'corechart\']});
+        // CORREÇÃO: Removidas as barras invertidas ('\') desnecessárias de todo o script.
+
+        google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(function() {
             // Garante que o gráfico seja desenhado na carga inicial se um produto já estiver selecionado
             if ($("#produtoId").val()) {
@@ -102,30 +104,30 @@
             var productId = $("#produtoId").val();
             if (!productId) {
                 // Limpa o gráfico se nenhum produto for selecionado
-                document.getElementById(\'demand_forecast_chart\').innerHTML = \'Selecione um produto para visualizar o gráfico.\';
+                document.getElementById('demand_forecast_chart').innerHTML = 'Selecione um produto para visualizar o gráfico.';
                 return;
             }
 
-            $.getJSON(\'/Previsao/GetDemandForecastChartData?productId=\' + productId, function (jsonData) {
+            $.getJSON('/Previsao/GetDemandForecastChartData?productId=' + productId, function (jsonData) {
                 var data = google.visualization.arrayToDataTable(jsonData);
 
                 var options = {
-                    title: \'Vendas Reais vs. Previsão de Demanda\',
-                    curveType: \'function\',
-                    legend: { position: \'bottom\' },
-                    hAxis: { title: \'Data\', format: \'yyyy-MM-dd\' },
-                    vAxis: { title: \'Quantidade\' },
+                    title: 'Vendas Reais vs. Previsão de Demanda',
+                    curveType: 'function',
+                    legend: { position: 'bottom' },
+                    hAxis: { title: 'Data', format: 'yyyy-MM-dd' },
+                    vAxis: { title: 'Quantidade' },
                     series: {
-                        0: { color: \'#1f77b4\' }, // Vendas Reais
-                        1: { color: \'#ff7f0e\', lineDashStyle: [4, 4] } // Previsão de Demanda (tracejada)
+                        0: { color: '#1f77b4' }, // Vendas Reais
+                        1: { color: '#ff7f0e', lineDashStyle: [4, 4] } // Previsão de Demanda (tracejada)
                     }
                 };
 
-                var chart = new google.visualization.LineChart(document.getElementById(\'demand_forecast_chart\'));
+                var chart = new google.visualization.LineChart(document.getElementById('demand_forecast_chart'));
                 chart.draw(data, options);
             }).fail(function(jqXHR, textStatus, errorThrown) {
                 console.error("Erro ao carregar dados do gráfico: " + textStatus, errorThrown);
-                document.getElementById(\'demand_forecast_chart\').innerHTML = \'<div class=\"alert alert-warning\">Não foi possível carregar os dados do gráfico. Verifique se há previsões geradas para o produto selecionado.</div>\';
+                document.getElementById('demand_forecast_chart').innerHTML = '<div class="alert alert-warning">Não foi possível carregar os dados do gráfico. Verifique se há previsões geradas para o produto selecionado.</div>';
             });
         }
 
