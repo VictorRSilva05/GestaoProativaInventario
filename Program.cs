@@ -18,6 +18,15 @@ builder.Services.AddScoped<GestaoProativaInventario.Services.PrevisaoService>();
 builder.Services.AddScoped<GestaoProativaInventario.Services.AlertaService>();
 builder.Services.AddScoped<GestaoProativaInventario.Services.DashboardService>();
 
+var supportedCultures = new[] { new CultureInfo("pt-BR") };
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("pt-BR");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,6 +38,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRequestLocalization();
 app.UseStaticFiles();
 
 app.UseRouting();
