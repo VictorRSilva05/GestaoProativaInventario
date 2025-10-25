@@ -242,6 +242,7 @@ a {
 
 /* --- tbelas --- */
 .table {
+    color: #FFFFFF;
     --bs-table-bg: var(--cor-componente);
     --bs-table-border-color: var(--cor-borda);
     --bs-table-color: var(--cor-texto-principal);
