@@ -1,22 +1,405 @@
-html {
-  font-size: 14px;
+/*
+ Versão Dark Mode by Kadu
+*/
+
+/* 1. definicao das variaveis de cor */
+:root {
+    --cor-primaria: #3333FF; /* azul do logo */
+    --cor-primaria-hover: #4D4DFF;
+    --cor-primaria-fundo: rgba(51, 51, 255, 0.1);
+    --cor-fundo: #121217; /* fundo principal (quase preto) */
+    --cor-componente: #1E1E2C; /* fundo de cards, sidebar */
+
+    --cor-texto-principal: #F0F0F0; /* texto principal (branco suave) */
+    --cor-texto-secundario: #A0A0B0; /* texto de apoio (cinza) */
+
+    --cor-borda: #2A2A3A; /* fbordas sutis */
+    /* cores Semânticas */
+    --cor-sucesso: #00C853;
+    --cor-aviso: #FFAB00;
+    --cor-erro: #D50000;
+    --cor-info: #00B0FF;
+    /* cores bootstrap para texto */
+    --bs-text-danger: var(--cor-erro);
+    --bs-text-warning: var(--cor-aviso);
+    --bs-text-success: var(--cor-sucesso);
+    --bs-text-info: var(--cor-info);
 }
 
-@media (min-width: 768px) {
-  html {
+/* 2. estilos globais e reset */
+html {
     font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto-principal);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--cor-texto-principal);
+    font-weight: 600;
+}
+
+a {
+    color: var(--cor-primaria);
+    text-decoration: none;
+}
+
+    a:hover {
+        color: var(--cor-primaria-hover);
+        text-decoration: underline;
+    }
+
+/* 3. estrutura da aplicação (sidebar + conteudo) */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: var(--cor-componente);
+    border-right: 1px solid var(--cor-borda);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    flex-shrink: 0; 
+}
+
+.main-content {
+    flex-grow: 1; 
+    padding: 2rem 3rem;
+    overflow-y: auto; /* permite scroll só no conteúdo */
+}
+
+/* 4. estilos do novo sidebar */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--cor-texto-principal) !important;
+    text-decoration: none;
+    margin-bottom: 0.25rem;
+}
+
+    .sidebar-brand img {
+        width: 32px; /* ajusta o tamanho da logo */
+        height: 32px;
+    }
+
+    .sidebar-brand:hover {
+        text-decoration: none;
+    }
+
+.sidebar-tagline {
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: var(--cor-texto-secundario);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    flex-grow: 1; 
+}
+
+    .sidebar-nav .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0.5rem;
+        color: var(--cor-texto-secundario);
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .sidebar-nav .nav-link:hover {
+            color: var(--cor-texto-principal);
+            background-color: rgba(255, 255, 255, 0.05);
+            text-decoration: none;
+        }
+
+        .sidebar-nav .nav-link.active {
+            color: var(--cor-primaria);
+            background-color: var(--cor-primaria-fundo);
+        }
+
+            .sidebar-nav .nav-link.active svg {
+                color: var(--cor-primaria);
+            }
+
+        .sidebar-nav .nav-link svg {
+            width: 20px;
+            height: 20px;
+        }
+
+/* 5. override de componentes bootstrap (estiliza o conteudo) */
+
+/* --- botoes --- */
+.btn {
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.btn-primary {
+    background-color: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+}
+
+    .btn-primary:hover {
+        background-color: var(--cor-primaria-hover);
+        border-color: var(--cor-primaria-hover);
+    }
+
+.btn-outline-primary {
+    color: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+}
+
+    .btn-outline-primary:hover {
+        color: #fff;
+        background-color: var(--cor-primaria-hover);
+        border-color: var(--cor-primaria-hover);
+    }
+
+.btn-secondary {
+    background-color: var(--cor-componente);
+    border-color: var(--cor-borda);
+    color: var(--cor-texto-principal);
+}
+
+    .btn-secondary:hover {
+        background-color: var(--cor-borda);
+        border-color: var(--cor-borda);
+    }
+
+.btn-outline-secondary {
+    color: var(--cor-texto-secundario);
+    border-color: var(--cor-borda);
+}
+
+    .btn-outline-secondary:hover {
+        color: var(--cor-texto-principal);
+        background-color: var(--cor-borda);
+    }
+
+.btn-danger {
+    background-color: var(--cor-erro);
+    border-color: var(--cor-erro);
+}
+
+.btn-outline-danger {
+    color: var(--cor-erro);
+    border-color: var(--cor-erro);
+}
+
+    .btn-outline-danger:hover {
+        color: #fff;
+        background-color: var(--cor-erro);
+    }
+
+.btn-success {
+    background-color: var(--cor-sucesso);
+    border-color: var(--cor-sucesso);
+}
+
+.btn-outline-success {
+    color: var(--cor-sucesso);
+    border-color: var(--cor-sucesso);
+}
+
+    .btn-outline-success:hover {
+        color: #fff;
+        background-color: var(--cor-sucesso);
+    }
+
+.btn-info {
+    background-color: var(--cor-info);
+    border-color: var(--cor-info);
+}
+
+.btn-outline-info {
+    color: var(--cor-info);
+    border-color: var(--cor-info);
+}
+
+    .btn-outline-info:hover {
+        color: #fff;
+        background-color: var(--cor-info);
+    }
+
+/* --- tbelas --- */
+.table {
+    --bs-table-bg: var(--cor-componente);
+    --bs-table-border-color: var(--cor-borda);
+    --bs-table-color: var(--cor-texto-principal);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-striped {
+    --bs-table-striped-bg: rgba(0, 0, 0, 0.15);
+    --bs-table-striped-color: var(--cor-texto-principal);
+}
+
+.table thead {
+    background-color: rgba(0,0,0,0.2);
+}
+
+.table th {
+    color: var(--cor-texto-secundario);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom-width: 1px;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 0.9rem 1rem;
+}
+
+.border-bottom {
+    border-bottom-color: var(--cor-borda) !important;
+}
+
+/* --- forms --- */
+.form-control, .form-select {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+}
+
+    .form-control:focus, .form-select:focus {
+        background-color: var(--cor-fundo);
+        color: var(--cor-texto-principal);
+        border-color: var(--cor-primaria);
+        box-shadow: 0 0 0 3px var(--cor-primaria-fundo);
+    }
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.input-group {
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+}
+
+    .input-group .form-control {
+        border: none;
+    }
+
+    .input-group .btn {
+        border: 1px solid var(--cor-borda);
+    }
+
+/* --- cards --- */
+.card {
+    background-color: var(--cor-componente);
+    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    background-color: rgba(0,0,0,0.1);
+    border-top: 1px solid var(--cor-borda);
+}
+/* cores dos cards da dashboard */
+.card.bg-primary {
+    background-color: var(--cor-primaria) !important;
+}
+
+.card.bg-success {
+    background-color: var(--cor-sucesso) !important;
+}
+
+.card.bg-info {
+    background-color: var(--cor-info) !important;
+}
+
+.card.bg-warning {
+    background-color: var(--cor-aviso) !important;
+}
+
+.card.text-white .card-title {
+    color: rgba(255,255,255,0.8) !important;
+    font-weight: 500;
+}
+/* cores das bordas dos alertas */
+.border-danger {
+    border-color: var(--cor-erro) !important;
+}
+
+.border-warning {
+    border-color: var(--cor-aviso) !important;
+}
+
+.border-info {
+    border-color: var(--cor-info) !important;
+}
+
+.border-dark {
+    border-color: var(--cor-texto-secundario) !important;
+}
+
+
+/* --- alertas --- */
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-info {
+    background-color: rgba(0, 176, 255, 0.1);
+    color: var(--cor-info);
+}
+
+.alert-danger {
+    background-color: rgba(213, 0, 0, 0.1);
+    color: var(--cor-erro);
+}
+
+.alert-warning {
+    background-color: rgba(255, 171, 0, 0.1);
+    color: var(--cor-aviso);
+}
+
+/* --- badge n sei oq --- */
+.badge.bg-success {
+    background-color: var(--cor-sucesso) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--cor-erro) !important;
+}
+
+/* remove o rodape caso  não estiver sendo usado */
+.footer {
+    display: none;
 }

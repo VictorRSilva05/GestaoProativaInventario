@@ -1,93 +1,85 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PredictStock</title>
+    <title>@ViewData["Title"] - Predistock</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/GestaoProativaInventario.styles.css" asp-append-version="true" />
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link rel="stylesheet" href="~/Integrativa.styles.css" asp-append-version="true" />
+    
+    <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Dashboard" asp-action="Index">PredictStock</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    
+    <div class="app-container">
+        
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <a class="sidebar-brand" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                    <img src="images/logo.png" alt="Predistock Logo" /> 
+                    <span>predistock</span>
+                </a>
+                <small class="sidebar-tagline">GESTÃO PREDITIVA</small>
             </div>
-        </nav>
-    </header>
+            
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                        <i data-feather="grid"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Produto" ? "active" : "")" asp-area="" asp-controller="Produto" asp-action="Index">
+                        <i data-feather="box"></i> Produtos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Categoria" ? "active" : "")" asp-area="" asp-controller="Categoria" asp-action="Index">
+                        <i data-feather="layers"></i> Categorias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Previsao" ? "active" : "")" asp-area="" asp-controller="Previsao" asp-action="Index">
+                        <i data-feather="trending-up"></i> Previsão
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Alerta" ? "active" : "")" asp-area="" asp-controller="Alerta" asp-action="Index">
+                        <i data-feather="alert-triangle"></i> Alertas
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Importacao" ? "active" : "")" asp-area="" asp-controller="Importacao" asp-action="Index">
+                        <i data-feather="upload"></i> Importação
+                    </a>
+                </li>
+            </ul>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" asp-area="" asp-controller="Dashboard" asp-action="Index">
-                                <i class="bi bi-speedometer2"></i>
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Importacao" asp-action="Index">
-                                <i class="bi bi-cloud-upload"></i>
-                                Importação de Dados
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Produto" asp-action="Index">
-                                <i class="bi bi-box-seam"></i>
-                                Produtos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Categoria" asp-action="Index">
-                                <i class="bi bi-tag"></i>
-                                Categorias
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Previsao" asp-action="Index">
-                                <i class="bi bi-graph-up"></i>
-                                Previsão de Demanda
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Alerta" asp-action="Index">
-                                <i class="bi bi-bell"></i>
-                                Alertas e Notificações
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">
-                                <i class="bi bi-gear"></i>
-                                Configurações
-                            </a>
-                        </li>
-                    </ul>
+            <div class="sidebar-footer">
                 </div>
-            </nav>
-
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                @RenderBody( )
-            </main>
-        </div>
+        </nav>
+        
+        <main class="main-content" role="main">
+            <div class="container-fluid"> 
+                @RenderBody()
+            </div>
+        </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - PredictStock - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidade</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+      feather.replace()
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
