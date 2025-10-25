@@ -41,72 +41,42 @@
     </div>
 </div>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success" role="alert">
-        @TempData["SuccessMessage"]
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger" role="alert">
-        @TempData["ErrorMessage"]
-    </div>
-}
-
-<div class="card mb-4">
-    <div class="card-header">
-        Últimas Previsões Geradas
-    </div>
-    <div class="card-body">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Período de Observação</th>
-                    <th>Intervalo de Previsão</th>
-                    <th>Média Móvel</th>
-                    <th>Demanda Prevista</th>
-                    <th>Data do Cálculo</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Produto.Nome)</td>
-                        <td>@Html.DisplayFor(modelItem => item.PeriodoObservacao) dias</td>
-                        <td>@Html.DisplayFor(modelItem => item.IntervaloPrevisao) dias</td>
-                        <td>@item.MediaMovel.ToString("N2")</td>
-                        <td>@Html.DisplayFor(modelItem => item.DemandaPrevista)</td>
-                        <td>@Html.DisplayFor(modelItem => item.DataCalculo)</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
-
 @section Scripts {
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
-        // CORREÇÃO: Removidas as barras invertidas ('\') desnecessárias de todo o script.
-
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(function() {
-            // Garante que o gráfico seja desenhado na carga inicial se um produto já estiver selecionado
-            if ($("#produtoId").val()) {
-                drawChart();
-            }
-        });
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
 
         function drawChart() {
             var productId = $("#produtoId").val();
             if (!productId) {
-                // Limpa o gráfico se nenhum produto for selecionado
-                document.getElementById('demand_forecast_chart').innerHTML = 'Selecione um produto para visualizar o gráfico.';
+                document.getElementById('demand_forecast_chart').innerHTML = '<div class="alert alert-info">Selecione um produto e gere a previsão para visualizar o gráfico.</div>';
                 return;
             }
+
+            // --- INÍCIO DA MODIFICAÇÃO (Tema Escuro) ---
+            var chartTextStyle = { color: '#F0F0F0' }; // Texto principal
+            var axisTextStyle = { color: '#A0A0B0' }; // Texto dos eixos
+
+            var darkThemeOptions = {
+                backgroundColor: 'transparent', // Fundo do gráfico
+                legend: { textStyle: chartTextStyle, position: 'bottom' },
+                titleTextStyle: chartTextStyle,
+                hAxis: { 
+                    title: 'Data', 
+                    format: 'yyyy-MM-dd',
+                    textStyle: axisTextStyle, 
+                    titleTextStyle: axisTextStyle,
+                    gridlines: { color: '#2A2A3A' } // Cor das linhas de grade
+                },
+                vAxis: { 
+                    title: 'Quantidade',
+                    textStyle: axisTextStyle, 
+                    titleTextStyle: axisTextStyle,
+                    gridlines: { color: '#2A2A3A' } // Cor das linhas de grade
+                }
+            };
+            // --- FIM DA MODIFICAÇÃO ---
 
             $.getJSON('/Previsao/GetDemandForecastChartData?productId=' + productId, function (jsonData) {
                 var data = google.visualization.arrayToDataTable(jsonData);
@@ -114,19 +84,17 @@
                 var options = {
                     title: 'Vendas Reais vs. Previsão de Demanda',
                     curveType: 'function',
-                    legend: { position: 'bottom' },
-                    hAxis: { title: 'Data', format: 'yyyy-MM-dd' },
-                    vAxis: { title: 'Quantidade' },
                     series: {
-                        0: { color: '#1f77b4' }, // Vendas Reais
-                        1: { color: '#ff7f0e', lineDashStyle: [4, 4] } // Previsão de Demanda (tracejada)
-                    }
+                        0: { color: '#3333FF' }, // Vendas Reais (Azul Predistock)
+                        1: { color: '#FFAB00', lineDashStyle: [4, 4] } // Previsão (Amarelo)
+                    },
+                    // Aplica o tema escuro
+                    ...darkThemeOptions
                 };
 
                 var chart = new google.visualization.LineChart(document.getElementById('demand_forecast_chart'));
                 chart.draw(data, options);
             }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error("Erro ao carregar dados do gráfico: " + textStatus, errorThrown);
                 document.getElementById('demand_forecast_chart').innerHTML = '<div class="alert alert-warning">Não foi possível carregar os dados do gráfico. Verifique se há previsões geradas para o produto selecionado.</div>';
             });
         }

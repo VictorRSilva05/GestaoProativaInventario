@@ -14,7 +14,6 @@
 </div>
 
 <div class="row">
-    <!-- Cards de KPIs -->
     <div class="col-md-3 mb-4">
         <div class="card text-white bg-primary mb-3">
             <div class="card-body">
@@ -50,67 +49,26 @@
 </div>
 
 <div class="row">
-    <!-- Gráficos -->
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header">Distribuição de Alertas por Tipo</div>
             <div class="card-body">
-                <div id="alerts_distribution_chart" style="height: 300px;"></div>
+                <div id="alerts_distribution_chart" style="height: 400px;"></div>
             </div>
         </div>
     </div>
     <div class="col-md-6 mb-4">
         <div class="card">
-            <div class="card-header">Giro de Estoque por Categoria</div>
             <div class="card-body">
-                <div id="stock_turnover_chart" style="height: 300px;"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Top Alertas -->
-    <div class="col-md-12 mb-4">
-        <div class="card">
-            <div class="card-header">Top 5 Alertas Ativos</div>
-            <div class="card-body">
-                @if (Model.TopAlertas != null && Model.TopAlertas.Any())
-                {
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Produto</th>
-                                <th>Tipo</th>
-                                <th>Mensagem</th>
-                                <th>Data Geração</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var alerta in Model.TopAlertas)
-                            {
-                                <tr>
-                                    <td>@alerta.Produto.Nome</td>
-                                    <td>@alerta.Tipo</td>
-                                    <td>@alerta.Mensagem</td>
-                                    <td>@alerta.DataGeracao.ToShortDateString()</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <p>Nenhum alerta ativo encontrado.</p>
-                }
+                <div id="stock_turnover_chart" style="height: 400px;"></div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
-        google.charts.load("current", {"packages":["corechart"]});
+        google.charts.load("current", { packages: ["corechart"] });
         google.charts.setOnLoadCallback(drawCharts);
 
         function drawCharts() {
@@ -118,20 +76,43 @@
             drawStockTurnoverChart();
         }
 
+        // --- INÍCIO DA MODIFICAÇÃO (Tema Escuro) ---
+        var chartTextStyle = { color: '#F0F0F0' }; // Texto principal
+        var axisTextStyle = { color: '#A0A0B0' }; // Texto dos eixos
+
+        var darkThemeOptions = {
+            backgroundColor: 'transparent', // Fundo do gráfico
+            legend: { textStyle: chartTextStyle },
+            titleTextStyle: chartTextStyle,
+            hAxis: { 
+                textStyle: axisTextStyle, 
+                titleTextStyle: axisTextStyle,
+                gridlines: { color: '#2A2A3A' } // Cor das linhas de grade
+            },
+            vAxis: { 
+                textStyle: axisTextStyle, 
+                titleTextStyle: axisTextStyle,
+                gridlines: { color: '#2A2A3A' } // Cor das linhas de grade
+            }
+        };
+        // --- FIM DA MODIFICAÇÃO ---
+
+
         function drawAlertsDistributionChart() {
             $.getJSON("/Dashboard/GetAlertsDistributionChartData", function (jsonData) {
                 var data = google.visualization.arrayToDataTable(jsonData);
 
                 var options = {
-                    title: "Distribuição de Alertas por Tipo",
-                    pieHole: 0.4,
-                    legend: { position: "bottom" }
+                    title: "Distribuição de Alertas Ativos",
+                    is3D: true,
+                    pieSliceTextStyle: { color: 'black' },
+                    // Aplica o tema escuro
+                    ...darkThemeOptions 
                 };
 
                 var chart = new google.visualization.PieChart(document.getElementById("alerts_distribution_chart"));
                 chart.draw(data, options);
             }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error("Erro ao carregar dados do gráfico de alertas: " + textStatus, errorThrown);
                 document.getElementById("alerts_distribution_chart").innerHTML = "<div class=\"alert alert-warning\">Não foi possível carregar os dados do gráfico de alertas.</div>";
             });
         }
@@ -144,13 +125,14 @@
                     title: "Giro de Estoque por Categoria",
                     legend: { position: "bottom" },
                     vAxis: { title: "Giro (dias)" },
-                    hAxis: { title: "Categoria" }
+                    hAxis: { title: "Categoria" },
+                    // Aplica o tema escuro
+                    ...darkThemeOptions 
                 };
 
                 var chart = new google.visualization.ColumnChart(document.getElementById("stock_turnover_chart"));
                 chart.draw(data, options);
             }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error("Erro ao carregar dados do gráfico de giro de estoque: " + textStatus, errorThrown);
                 document.getElementById("stock_turnover_chart").innerHTML = "<div class=\"alert alert-warning\">Não foi possível carregar os dados do gráfico de giro de estoque.</div>";
             });
         }
