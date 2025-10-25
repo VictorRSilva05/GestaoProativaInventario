@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using GestaoProativaInventario.Data;
 using GestaoProativaInventario.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Buffers.Text;
 
 namespace GestaoProativaInventario.Services
 {
@@ -24,49 +22,64 @@ namespace GestaoProativaInventario.Services
 
         public async Task GerarAlertasAutomaticos()
         {
-            // Carrega todos os produtos sem incluir vendas diretamente para evitar o erro CS1061
             var produtos = await _context.Produtos.ToListAsync();
+
+            // --- CONSERTO DE FUSO HORÁRIO (BUG 1) ---
+            // Usamos UTC para todas as comparações de "agora" e "hoje"
+            var dataAtualUtc = DateTime.UtcNow;
+            var dataHojeUtc = dataAtualUtc.Date;
 
             foreach (var produto in produtos)
             {
-                // Ruptura Imediata: estoque atual menor que demanda prevista para próximos 7 dias.
-                var previsao7Dias = await _context.Previsoes
-                                                .Where(p => p.ProdutoId == produto.Id && p.IntervaloPrevisao == 7)
-                                                .OrderByDescending(p => p.DataCalculo)
-                                                .FirstOrDefaultAsync();
-                if (previsao7Dias != null && produto.EstoqueAtual < previsao7Dias.DemandaPrevista)
+                // --- CONSERTO DE LÓGICA (BUSCA) ---
+                // Buscamos a previsão de 30 dias (a única que o ML.NET gera)
+                var previsao30Dias = await _context.Previsoes
+                        .Where(p => p.ProdutoId == produto.Id && p.IntervaloPrevisao == 30)
+                        .OrderByDescending(p => p.DataCalculo)
+                        .FirstOrDefaultAsync();
+
+                // --- CONSERTO DE LÓGICA (RUPTURA IMEDIATA) ---
+                // Removemos a busca pela previsão de 7 dias (que não existe)
+                if (previsao30Dias != null)
                 {
-                    await CreateOrUpdateAlerta(produto.Id, "Ruptura Imediata", $"Estoque atual ({produto.EstoqueAtual}) é menor que a demanda prevista para os próximos 7 dias ({previsao7Dias.DemandaPrevista}).");
+                    // Calculamos a previsão de 7 dias (pro-rata)
+                    // Usamos 'm' (decimal) para garantir a precisão
+                    var demandaPrevista7Dias = (previsao30Dias.DemandaPrevista / 30.0m) * 7.0m;
+
+                    if (produto.EstoqueAtual < demandaPrevista7Dias)
+                    {
+                        // Passamos 'dataAtualUtc' para o método de criação
+                        await CreateOrUpdateAlerta(produto.Id, "Ruptura Imediata", $"Estoque atual ({produto.EstoqueAtual}) é menor que a demanda prevista para os próximos 7 dias ({demandaPrevista7Dias:N2}).", dataAtualUtc);
+                    }
                 }
 
-                // Excesso de Estoque: estoque atual superior à demanda prevista para próximos 30 dias multiplicada por fator (ex: 1,5x).
-                var previsao30Dias = await _context.Previsoes
-                                                .Where(p => p.ProdutoId == produto.Id && p.IntervaloPrevisao == 30)
-                                                .OrderByDescending(p => p.DataCalculo)
-                                                .FirstOrDefaultAsync();
-                if (previsao30Dias != null && produto.EstoqueAtual > (previsao30Dias.DemandaPrevista * 1.5))
+                // Excesso de Estoque (Lógica OK, apenas adicionamos 'm' para decimal)
+                if (previsao30Dias != null && produto.EstoqueAtual > (previsao30Dias.DemandaPrevista * 1.5m))
                 {
-                    await CreateOrUpdateAlerta(produto.Id, "Excesso de Estoque", $"Estoque atual ({produto.EstoqueAtual}) é superior a 1.5x a demanda prevista para os próximos 30 dias ({previsao30Dias.DemandaPrevista}).");
+                    await CreateOrUpdateAlerta(produto.Id, "Excesso de Estoque", $"Estoque atual ({produto.EstoqueAtual}) é superior a 1.5x a demanda prevista para os próximos 30 dias ({previsao30Dias.DemandaPrevista}).", dataAtualUtc);
                 }
 
-                // Produto Parado: sem vendas nos últimos 60 dias.
-                // Busca a última venda diretamente do contexto de Vendas
-                var ultimaVenda = await _context.Vendas.Where(v => v.ProdutoId == produto.Id).OrderByDescending(v => v.DataVenda).FirstOrDefaultAsync();
-                if (ultimaVenda == null || (DateTime.Now - ultimaVenda.DataVenda).TotalDays > 60)
+                // Produto Parado: (CONSERTO DE FUSO HORÁRIO (BUG 2))
+                var ultimaVenda = await _context.Vendas.Where(v => v.ProdutoId == produto.Id).OrderByDescending(v => v.DataVenda).FirstOrDefaultAsync();
+
+                // Compara dataAtualUtc (UTC) com ultimaVenda.DataVenda (UTC)
+                if (ultimaVenda == null || (dataAtualUtc - ultimaVenda.DataVenda).TotalDays > 60)
                 {
-                    await CreateOrUpdateAlerta(produto.Id, "Produto Parado", $"Produto sem vendas há mais de 60 dias.");
+                    await CreateOrUpdateAlerta(produto.Id, "Produto Parado", $"Produto sem vendas há mais de 60 dias.", dataAtualUtc);
                 }
 
-                // Produto Vencido: data de validade expirou.
-                if (produto.DataValidade.HasValue && produto.DataValidade.Value < DateTime.Today)
+                // Produto Vencido: (CONSERTO DE FUSO HORÁRIO (BUG 3))
+                // Compara DataValidade.Value (UTC) com dataHojeUtc (UTC)
+                if (produto.DataValidade.HasValue && produto.DataValidade.Value < dataHojeUtc)
                 {
-                    await CreateOrUpdateAlerta(produto.Id, "Produto Vencido", $"Produto com data de validade expirada em {produto.DataValidade.Value.ToShortDateString()}.");
+                    await CreateOrUpdateAlerta(produto.Id, "Produto Vencido", $"Produto com data de validade expirada em {produto.DataValidade.Value.ToShortDateString()}.", dataAtualUtc);
                 }
             }
             await _context.SaveChangesAsync();
         }
 
-        private async Task CreateOrUpdateAlerta(int produtoId, string tipo, string mensagem)
+        // Alteramos o método para aceitar a data UTC
+        private async Task CreateOrUpdateAlerta(int produtoId, string tipo, string mensagem, DateTime dataAtualUtc)
         {
             var alertaExistente = await _context.Alertas
                                                 .FirstOrDefaultAsync(a => a.ProdutoId == produtoId && a.Tipo == tipo && !a.Resolvido);
@@ -78,18 +91,18 @@ namespace GestaoProativaInventario.Services
                     ProdutoId = produtoId,
                     Tipo = tipo,
                     Mensagem = mensagem,
-                    DataGeracao = DateTime.Now,
+                    // A linha do bug (93) foi removida
+                    DataGeracao = dataAtualUtc, // <-- CONSERTO DE FUSO HORÁRIO (BUG 4)
                     Resolvido = false
                 });
             }
             else
             {
-                alertaExistente.Mensagem = mensagem; // Atualiza a mensagem se o alerta já existe
-                alertaExistente.DataGeracao = DateTime.Now; // Atualiza a data de geração
+                alertaExistente.Mensagem = mensagem;
+                alertaExistente.DataGeracao = dataAtualUtc; // <-- CONSERTO DE FUSO HORÁRIO (BUG 5)
                 _context.Alertas.Update(alertaExistente);
             }
         }
-
         public async Task MarcarAlertaComoResolvidoAsync(int id)
         {
             var alerta = await _context.Alertas.FindAsync(id);

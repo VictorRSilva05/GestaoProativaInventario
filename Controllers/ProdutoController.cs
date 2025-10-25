@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GestaoProativaInventario.Data;
 using GestaoProativaInventario.Models;
 using GestaoProativaInventario.Services;
 
@@ -16,11 +10,15 @@ namespace GestaoProativaInventario.Controllers
     {
         private readonly ProdutoService _produtoService;
         private readonly CategoriaService _categoriaService;
+        private readonly PrevisaoService _previsaoService; 	// <-- ADICIONAR
+        private readonly AlertaService _alertaService; 		// <-- ADICIONAR
 
-        public ProdutoController(ProdutoService produtoService, CategoriaService categoriaService)
+        public ProdutoController(ProdutoService produtoService, CategoriaService categoriaService, PrevisaoService previsaoService, AlertaService alertaService)
         {
             _produtoService = produtoService;
             _categoriaService = categoriaService;
+            _previsaoService = previsaoService; 	// <-- ADICIONAR
+            _alertaService = alertaService; 		// <-- ADICIONAR
         }
 
         // GET: Produto
@@ -64,6 +62,13 @@ namespace GestaoProativaInventario.Controllers
             {
                 produto.DataValidade = produto.DataValidade?.ToUniversalTime();
                 await _produtoService.AddProdutoAsync(produto);
+                // --- INÍCIO DO CONSERTO (GATILHOS) ---
+                // 1. Gera a previsão inicial (o ML.NET usará o fallback, pois não há vendas)
+                await _previsaoService.GerarPrevisoesDemanda(produto.Id, 30, 30); 
+                
+                // 2. Roda a verificação de alertas (comparando o estoque inicial com a previsão de 0)
+                await _alertaService.GerarAlertasAutomaticos();
+                // --- FIM DO CONSERTO ---
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoriaId"] = new SelectList(await _categoriaService.GetAllCategoriasAsync(), "Id", "Nome", produto.CategoriaId);
@@ -103,6 +108,12 @@ namespace GestaoProativaInventario.Controllers
                 {
                     produto.DataValidade = produto.DataValidade?.ToUniversalTime();
                     await _produtoService.UpdateProdutoAsync(produto);
+
+                    // --- INÍCIO DO CONSERTO (GATILHO DE ALERTA) ---
+                    // Como o estoque pode ter mudado, rodamos a verificação de alertas
+                    // (Não é necessário rodar a previsão, pois ela se baseia em vendas, não em estoque)
+                    await _alertaService.GerarAlertasAutomaticos();
+                    // --- FIM DO CONSERTO ---
                 }
                 catch (DbUpdateConcurrencyException)
                 {
