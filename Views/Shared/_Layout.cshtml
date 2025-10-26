@@ -22,7 +22,7 @@
         <nav class="sidebar">
             <div class="sidebar-header">
                 <a class="sidebar-brand" asp-area="" asp-controller="Dashboard" asp-action="Index">
-                    <img src="@Url.Content("~/images/logo.png")" alt="predictstock logo" ...>
+                    <img src="@Url.Content("~/images/logo.png")" alt="predictstock logo"> 
                     <span>predistock</span>
                 </a>
                 <small class="sidebar-tagline">GESTÃO PREDITIVA</small>
@@ -65,19 +65,52 @@
                 </div>
         </nav>
         
-        <main class="main-content" role="main">
-            <div class="container-fluid"> 
-                @RenderBody()
-            </div>
-        </main>
-    </div>
+        <div class="main-wrapper">
 
+            <header class="mobile-header">
+                <button class="mobile-toggle" id="sidebarToggle">
+                    <i data-feather="menu"></i>
+                </button>
+                <a class="mobile-brand" asp-area="" asp-controller="Dashboard" asp-action="Index">
+                    <img src="@Url.Content("~/images/logo.png")" alt="predictstock logo">
+                    <span>predistock</span>
+                </a>
+            </header>
+            <main class="main-content" role="main">
+                <div class="container-fluid"> 
+                    @RenderBody()
+                </div>
+            </main>
+
+        </div> </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     
     <script>
       feather.replace()
+
+      /* javascript para responsividade */
+      (function() {
+            var toggleBtn = document.getElementById('sidebarToggle');
+            var overlay = document.getElementById('sidebarOverlay');
+            var appContainer = document.querySelector('.app-container');
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    appContainer.classList.toggle('sidebar-open');
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', function() {
+                    appContainer.classList.remove('sidebar-open');
+                });
+            }
+        })();
+      /* fim javascript */
     </script>
     
     @await RenderSectionAsync("Scripts", required: false)
